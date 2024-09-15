@@ -3,9 +3,11 @@ import OpenAI from 'openai';
 
 export class PRReviewer {
   private openai: OpenAI;
+  private defaultBranch: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, defaultBranch: string = 'main') {
     this.openai = new OpenAI({ apiKey });
+    this.defaultBranch = defaultBranch;
   }
 
   async reviewChanges(): Promise<void> {
@@ -16,7 +18,7 @@ export class PRReviewer {
 
   private getDiff(): string {
     // ブランチの分岐点を見つける
-    const baseBranch = execSync('git merge-base HEAD origin/main').toString().trim();
+    const baseBranch = execSync(`git merge-base HEAD origin/${this.defaultBranch}`).toString().trim();
     // 分岐点から現在のHEADまでの差分を取得
     return execSync(`git diff ${baseBranch} HEAD`).toString();
   }
