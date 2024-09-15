@@ -43,11 +43,11 @@ export class PRReviewer {
     以下に変更されたファイルとそのコードのdiffを入力してください。各指摘は必ず変更ファイル名と差分と一緒に表示してください：
     
     ${diff}
+
     `;
     const response = await this.openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 500
+      messages: [{ role: "user", content: prompt }]
     });
     return response.choices[0]?.message?.content || '回答が得られませんでした。';
   }
