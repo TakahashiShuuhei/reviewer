@@ -6,6 +6,7 @@ import { execSync } from 'child_process';
 interface Config {
   token?: string;
   defaultDests: { [key: string]: string };
+  branchDests: { [key: string]: { [key: string]: string } };
 }
 
 class ConfigManager {
@@ -42,12 +43,31 @@ class ConfigManager {
     return config.defaultDests?.[repoId] || 'main';
   }
 
+  async saveBranchDest(branch: string, dest: string): Promise<void> {
+    const config = await this.getConfig();
+    const repoId = this.getRepoId();
+    if (!config.branchDests) {
+      config.branchDests = {};
+    }
+    if (!config.branchDests[repoId]) {
+      config.branchDests[repoId] = {};
+    }
+    config.branchDests[repoId][branch] = dest;
+    await this.saveConfig(config);
+  }
+
+  async getDest(branch: string): Promise<string> {
+    const config = await this.getConfig();
+    const repoId = this.getRepoId();
+    return config.branchDests?.[repoId]?.[branch] || config.defaultDests?.[repoId] || 'main';
+  }
+
   private async getConfig(): Promise<Config> {
     try {
       const configData = await fs.readFile(this.configPath, 'utf-8');
       return JSON.parse(configData);
     } catch {
-      return { defaultDests: {} };
+      return { defaultDests: {}, branchDests: {} };
     }
   }
 
