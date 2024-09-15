@@ -10,6 +10,7 @@ program
   .option('-t, --token <token>', 'LLMのアクセストークンを設定')
   .option('-b, --default-dest <branch>', 'デフォルトブランチを設定（デフォルト: main）')
   .option('--dest <branch>', '現在のブランチのマージ先を設定')
+  .option('-s, --staged', 'ステージングされた変更のみをレビュー')
   .action(async (options) => {
     if (options.token) {
       await configManager.saveToken(options.token);
@@ -38,8 +39,13 @@ program
 
     const currentBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
     const dest = await configManager.getDest(currentBranch);
+    
     const reviewer = new PRReviewer(token, dest);
-    await reviewer.reviewChanges();
+    if (options.staged) {
+      await reviewer.reviewStagedChanges();
+    } else {
+      await reviewer.reviewChanges();
+    }
   });
 
 program.parse(process.argv);

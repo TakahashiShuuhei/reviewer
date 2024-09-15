@@ -16,11 +16,21 @@ export class PRReviewer {
     console.log(review);
   }
 
+  async reviewStagedChanges(): Promise<void> {
+    const diff = this.getStagedDiff();
+    const review = await this.getReviewFromLLM(diff);
+    this.displayReview(review);
+  }
+
   private getDiff(): string {
     // ブランチの分岐点を見つける
     const baseBranch = execSync(`git merge-base HEAD origin/${this.defaultBranch}`).toString().trim();
     // 分岐点から現在のHEADまでの差分を取得
     return execSync(`git diff ${baseBranch} HEAD`).toString();
+  }
+
+  private getStagedDiff(): string {
+    return execSync('git diff --cached --unified=1').toString();
   }
 
   private async getReviewFromLLM(diff: string): Promise<string> {
@@ -50,5 +60,11 @@ export class PRReviewer {
       messages: [{ role: "user", content: prompt }]
     });
     return response.choices[0]?.message?.content || '回答が得られませんでした。';
+  }
+
+  private displayReview(review: string): void {
+    console.log('=== レビュー結果 ===');
+    console.log(review);
+    console.log('==================');
   }
 }
