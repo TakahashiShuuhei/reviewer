@@ -4,10 +4,12 @@ import OpenAI from 'openai';
 export class PRReviewer {
   private openai: OpenAI;
   private defaultBranch: string;
+  private with4o: boolean;
 
-  constructor(apiKey: string, defaultBranch: string = 'main') {
+  constructor(apiKey: string, defaultBranch: string = 'main', with4o: boolean = false) {
     this.openai = new OpenAI({ apiKey });
     this.defaultBranch = defaultBranch;
+    this.with4o = with4o;
   }
 
   async reviewChanges(): Promise<void> {
@@ -55,8 +57,9 @@ export class PRReviewer {
     ${diff}
 
     `;
+    const model = this.with4o ? "gpt-4o" : "gpt-4o-mini";
     const response = await this.openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: model,
       messages: [{ role: "user", content: prompt }]
     });
     return response.choices[0]?.message?.content || '回答が得られませんでした。';
